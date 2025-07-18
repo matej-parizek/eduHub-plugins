@@ -14,6 +14,12 @@ gradlePlugin{
             id="cz.projects.parizmat.eduHub.plugins.openApi"
             implementationClass = "cz.project.eduHub.plugins.openApi.OpenApi"
         }
+
+        register("detect"){
+            id="cz.projects.parizmat.eduHub.plugins.detekt"
+            implementationClass = "cz.project.eduHub.plugins.detekt.DeteKt"
+
+        }
     }
 }
 
