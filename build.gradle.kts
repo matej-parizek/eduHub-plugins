@@ -1,49 +1,76 @@
 plugins {
     `kotlin-dsl`             // Enables writing build logic in Kotlin DSL
     `java-gradle-plugin`     // Marks this as a Gradle plugin project
-    `maven-publish`          // Optional: for publishing to Maven local/remote
+    `maven-publish`          // For publishing to Maven local/remote
 }
 
 group = "cz.projects.parizmat.eduHub"
 version = "1.0-SNAPSHOT"
 
-gradlePlugin{
-    plugins{
+gradlePlugin {
+    plugins {
         // Register plugin
-        register("openApiGenerate"){
-            id="cz.projects.parizmat.eduHub.plugins.openApi"
+        register("kotlin") {
+            id = "cz.parizmat.eduHub.gradle.kotlin"
+            implementationClass = "cz.projects.parizmat.eduHub.plugins.kotlin.Kotlin"
+
+        }
+
+        // OpenAPI code generation plugin
+        register("openApiGenerate") {
+            id = "cz.parizmat.eduHub.gradle.openApi"
             implementationClass = "cz.project.eduHub.plugins.openApi.OpenApi"
         }
 
-        register("detect"){
-            id="cz.projects.parizmat.eduHub.plugins.detekt"
-            implementationClass = "cz.project.eduHub.plugins.detekt.DeteKt"
+        // Detekt plugin wrapper
+        register("detekt") {
+            id = "cz.parizmat.eduHub.gradle.detekt"
+            implementationClass = "cz.project.eduHub.plugins.detekt.Detekt"
+        }
 
+        //Kotlinter
+        register("kotlinter") {
+            id = "cz.parizmat.eduHub.gradle.kotlinter"
+            implementationClass = "cz.project.eduHub.plugins.kotlinter.Kotlinter"
+        }
+
+        // SpringBoot
+        register("spring-boot") {
+            id = "cz.parizmat.eduHub.gradle.springBoot"
+            implementationClass = "cz.project.eduHub.plugins.springBoot.SpringBoot"
         }
     }
 }
 
 repositories {
     mavenCentral()
+    gradlePluginPortal()
 }
 
 dependencies {
-    // OpenAPI
-    implementation("org.openapitools:openapi-generator-gradle-plugin:7.6.0")
+    // OpenAPI Generator plugin (used in custom OpenApi plugin)
+    implementation("org.openapitools:openapi-generator-gradle-plugin:${property("openApi.version")}")
 
-    //Detect (Static analyzation of code)
-    implementation("io.gitlab.arturbosch.detekt:detekt-gradle-plugin:1.23.8")
+    // Detekt plugin (used inside Detekt plugin)
+    implementation("io.gitlab.arturbosch.detekt:detekt-gradle-plugin:${property("detekt.version")}")
 
+    // Kotlin Gradle plugin API
     implementation(kotlin("gradle-plugin"))
-    implementation("org.slf4j:slf4j-api:2.0.13") // Logger
-    implementation(kotlin("stdlib"))
 
+    // Dokka plugin (documentation plugin)
+    implementation("org.jetbrains.dokka:dokka-gradle-plugin:${property("dokka.version")}")
 
-    testImplementation(kotlin("test"))
-}
+    // Kotlin plugins
+    implementation("org.jetbrains.kotlin:kotlin-allopen:${property("kotlin.version")}") // set all classes to open
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:${property("kotlin.version")}")
+    implementation("org.jetbrains.kotlin:kotlin-noarg:${property("kotlin.version")}")
 
-tasks.test {
-    useJUnitPlatform()
+    // Kotlinter (formating code)
+    implementation("org.jmailen.gradle:kotlinter-gradle:${property("kotlinter.version")}")
+
+    //Spring boot
+    implementation("org.springframework.boot:spring-boot-gradle-plugin:${property("spring-boot.version")}")
+    implementation("com.gorylenko.gradle-git-properties:gradle-git-properties:${property("git-properties.version")}")
 }
 kotlin {
     jvmToolchain(21)
