@@ -1,5 +1,6 @@
-package cz.projects.parizmat.cz.projects.parizmat.eduHub.plugins.kotlin
+package cz.projects.parizmat.eduHub.plugins.kotlin
 
+import cz.projects.parizmat.eduHub.plugins.utils.addAllByPrefix
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -8,7 +9,6 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.getByName
 import org.gradle.kotlin.dsl.withType
 import org.gradle.testing.jacoco.tasks.JacocoReport
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompilerOptions
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
 open class KotlinSettings(
@@ -23,6 +23,10 @@ class Kotlin : Plugin<Project> {
         val extension = project.extensions.create("kotlin", KotlinSettings::class.java)
         val sourceVersion = extension.sourceVersion
         val targetVersion = extension.targetVersion
+
+        // Add dependencies
+        project.dependencies.addAllByPrefix(project,"kotlin-")
+
 
         project.pluginManager.apply("org.jetbrains.kotlin.jvm")
         project.pluginManager.apply("jacoco")
@@ -47,12 +51,12 @@ class Kotlin : Plugin<Project> {
         project.tasks.getByName<JacocoReport>("jacocoTestReport") {
             dependsOn(project.tasks.withType<Test>())
 
-            reports{
+            reports {
                 xml.required.set(true)
             }
         }
 
-        project.configurations.matching { it.name == "compileOnly" }.configureEach{
+        project.configurations.matching { it.name == "compileOnly" }.configureEach {
             this.extendsFrom(project.configurations.getByName("annotationProcessor"))
         }
     }

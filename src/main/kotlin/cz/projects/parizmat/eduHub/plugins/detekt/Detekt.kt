@@ -1,5 +1,6 @@
-package cz.projects.parizmat.cz.projects.parizmat.eduHub.plugins.detect
+package cz.projects.parizmat.eduHub.plugins.detekt
 
+import cz.projects.parizmat.eduHub.plugins.utils.addAllByPrefix
 import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.DetektCreateBaselineTask
 import io.gitlab.arturbosch.detekt.extensions.DetektExtension
@@ -40,6 +41,7 @@ class Detekt : Plugin<Project> {
         val configPath = extension.configFilePath ?: "${project.rootDir}/config/detekt/config.yml"
         val baselineFile = extension.baselineFile ?: project.file("${project.rootDir}/config/detekt/baseline.xml")
 
+        project.dependencies.addAllByPrefix(project, "detekt-", configuration = "detektPlugins")
         project.pluginManager.apply("io.gitlab.arturbosch.detekt")
 
         project.extensions.configure<DetektExtension> {
@@ -71,4 +73,5 @@ class Detekt : Plugin<Project> {
             ).asFileTree
         }
     }
+
 }

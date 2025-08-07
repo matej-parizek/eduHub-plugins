@@ -1,8 +1,10 @@
-package cz.projects.parizmat.cz.projects.parizmat.eduHub.plugins.springBoot
+package cz.projects.parizmat.eduHub.plugins.springBoot
 
 import com.gorylenko.GitPropertiesPluginExtension
+import cz.projects.parizmat.eduHub.plugins.utils.addAllByPrefix
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
@@ -10,47 +12,44 @@ import org.gradle.kotlin.dsl.getByName
 import org.springframework.boot.gradle.dsl.SpringBootExtension
 
 class SpringBoot : Plugin<Project> {
-    private lateinit var _target: Project
     override fun apply(target: Project) {
-        _target = target
-        target.project.apply("cz.parizmat.eduHub.gradle.kotlin")
-        target.project.apply("org.springframework.boot")
-        target.project.apply("com.gorylenko.gradle-git-properties")
+        val libs = target.extensions
+            .getByType(VersionCatalogsExtension::class.java)
+            .named("libs")
+        // Apply required plugins
+        target.apply("cz.parizmat.eduHub.gradle.kotlin")
+        target.apply("org.springframework.boot")
+        target.apply("com.gorylenko.gradle-git-properties")
 
-        target.project.extensions.configure<SpringBootExtension> {
+        // Configure Spring Boot build info
+        target.extensions.configure<SpringBootExtension> {
             buildInfo()
         }
 
-        target.project.tasks.getByName<Jar>("jar") {
+        // Disable default JAR task
+        target.tasks.getByName<Jar>("jar") {
             enabled = false
         }
 
-        target.project.extensions.configure<GitPropertiesPluginExtension>("gitProperties") {
+        // Configure Git properties plugin
+        target.extensions.configure<GitPropertiesPluginExtension>("gitProperties") {
             failOnNoGitDirectory = true
         }
 
-        target.dependencies.add(
-            "annotationProcessor",
-            "org.springframework.boot:spring-boot-configuration-processor"
-        )
-
-        target.project.extensions.extraProperties.apply {
-            target.project.setVersion("kotest-extensions-spring.version", "1.1.3")
-            target.project.setVersion("snakeyaml.version", "2.2")
-            target.project.setVersion("spring-boot.version", "3.1.4")
-            target.project.setVersion("springmockk.version", "4.0.2")
+        // Add Spring Boot BOM
+        libs.findLibrary("spring-boot-bom").let {
+            target.dependencies.add("implementation", target.dependencies.platform(it))
         }
 
+        // Add configuration processor
+        libs.findLibrary("spring-boot-configuration-processor").let {
+            target.dependencies.add("annotationProcessor", it)
+        }
 
-        target.dependencies.add(
-            "implementation",
-            target.dependencies.platform(
-                "org.springframework.boot:spring-boot-dependencies:${target.property("spring-boot.version")}"
-            )
-        )
-    }
+        // Add gradle-git-* dependencies
+        target.dependencies.addAllByPrefix(target, "gradle-git-", configuration = "implementation")
 
-    fun Project.setVersion(key: String, default: String) {
-        _target.extensions.extraProperties.set(key, findProperty(key) ?: default)
+        // (Optional) Add spring-boot-starter-* dependencies
+        target.dependencies.addAllByPrefix(target, "spring-boot-starter-", configuration = "implementation")
     }
 }

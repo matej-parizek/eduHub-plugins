@@ -1,5 +1,6 @@
-package cz.projects.parizmat.cz.projects.parizmat.eduHub.plugins.kotlinter
+package cz.projects.parizmat.eduHub.plugins.kotlinter
 
+import cz.projects.parizmat.eduHub.plugins.utils.addAllByPrefix
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply
@@ -11,21 +12,27 @@ import org.jmailen.gradle.kotlinter.tasks.LintTask
 
 class Kotlinter : Plugin<Project> {
     override fun apply(target: Project) {
+        // Apply the plugin
+        target.apply(plugin = "org.jmailen.kotlinter")
 
-        target.project.apply("org.jmailen.kotlinter")
-        target.extensions.configure<KotlinterExtension>{
+        // Add dependency from version catalog
+        target.dependencies.addAllByPrefix(target, "kotlinter-", configuration = "implementation")
+
+        // Configure Kotlinter
+        target.extensions.configure<KotlinterExtension> {
             reporters = arrayOf("html")
         }
 
+        // Exclude generated sources from lint and format
         target.tasks.withType<LintTask>().configureEach {
-            source =source.minus(target.fileTree(
-                target.layout.buildDirectory.dir("generated-src"))
+            source = source.minus(
+                target.fileTree(target.layout.buildDirectory.dir("generated-src"))
             ).asFileTree
         }
 
         target.tasks.withType<FormatTask>().configureEach {
-            source = source.minus(target.fileTree(
-                target.layout.buildDirectory.dir("generated-src"))
+            source = source.minus(
+                target.fileTree(target.layout.buildDirectory.dir("generated-src"))
             ).asFileTree
         }
     }

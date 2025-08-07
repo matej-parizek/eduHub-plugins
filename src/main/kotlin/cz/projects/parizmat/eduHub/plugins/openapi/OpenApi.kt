@@ -1,5 +1,6 @@
-package cz.projects.parizmat.cz.projects.parizmat.eduHub.plugins.openapi
+package cz.projects.parizmat.eduHub.plugins.openapi
 
+import cz.projects.parizmat.eduHub.plugins.utils.addAllByPrefix
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
@@ -26,6 +27,8 @@ class OpenApi : Plugin<Project> {
         val version = extensions.version
         val inputDirPath = extensions.inputDir ?: "${project.rootDir}/src/main/resources/eduHub-api-${version}"
         val outputDirPath = extensions.outputDir ?: "${project.rootDir}/build/generated"
+
+        project.dependencies.addAllByPrefix(project, "openapi-")
 
         // Add OpenAPI plugin
         project.pluginManager.apply("org.openapi.generator")
